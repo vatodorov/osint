@@ -1,7 +1,5 @@
 ######################################################
-#
 # Purpose: Analysis of the C2 Master list from from Bambenek Consulting
-#
 #
 # Author: Valentin Todorov
 # Date: 10/17/2018
