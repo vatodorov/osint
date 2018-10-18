@@ -136,12 +136,12 @@ def summarize(lst, threshold):
 
     Parameters
     -------------
-        lst -
-        threshold -
+        lst - The parsed list from the function parse_and_flatten()
+        threshold - Threshold of the instances each list element need to have to be added to the output
 
     Returns
     -------------
-
+        A list
     """
 
     freq = Counter(lst)
