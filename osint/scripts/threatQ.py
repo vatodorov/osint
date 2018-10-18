@@ -2,7 +2,7 @@
 # Purpose: Analysis of the C2 Master list from from Bambenek Consulting
 #
 # Author: Valentin Todorov
-# Date: 10/17/2018
+# Date: 10/18/2018
 #
 ######################################################
 
@@ -56,7 +56,7 @@ def create_data_frame(logs_feed):
 
     df = pd.DataFrame({'col': logs_feed})
     df = pd.DataFrame(df.col.str.split(',', -1).tolist(),
-                      columns=['domain', 'domain_ip', 'fqdn_isp', 'fqdn_isp_ip', 'malware', 'url_feed'])
+                      columns=['domain', 'domain_ip', 'domain_registrar', 'domain_registrar_ip', 'malware', 'url_feed'])
     return df
 
 
@@ -78,11 +78,11 @@ def clean_data(df):
 
     # Parse the IPs of the ISPs
     split_fn = lambda x: pd.Series([i for i in x.split('|')])
-    fqdn_isp_ip_df = df['fqdn_isp_ip'].apply(split_fn)
-    column_names = list(fqdn_isp_ip_df.columns)
-    fqdn_isp_ip_df.columns = ['fqdn_isp_ip_' + str(column_names[x]) for x in range(len(column_names))]
+    domain_reg_df = df['domain_registrar_ip'].apply(split_fn)
+    column_names = list(domain_reg_df.columns)
+    domain_reg_df.columns = ['domain_registrar_ip_' + str(column_names[x]) for x in range(len(column_names))]
 
-    final_osint_df = df.join(fqdn_isp_ip_df)
+    final_osint_df = df.join(domain_reg_df)
     return final_osint_df
 
 
@@ -162,13 +162,13 @@ domain_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP address
 # Frequency of malware names
 bar_plot(cc_data, 'malware', graph_title='Malware frequency', threshold_value=0)
 
-# Frequency of IPs of the ISPs
-fqdn_isp_ip_lst = parse_and_flatten(cc_data, 'fqdn_isp_ip')
-fqdn_isp_ip_sum = summarize(fqdn_isp_ip_lst, 10)
-fqdn_isp_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of Service Providers')
+# Frequency of IPs of the domain registrars
+domain_reg_ip_lst = parse_and_flatten(cc_data, 'domain_registrar_ip')
+domain_reg_ip_sum = summarize(domain_reg_ip_lst, 10)
+domain_reg_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of Domain Registrars')
 
-# Analysis of the ISP names
-fqdn_isp_lst = parse_and_flatten(cc_data, 'fqdn_isp')
-fqdn_isp_sum = summarize(fqdn_isp_lst, 5)
-fqdn_isp_sum.sort_values().plot(kind='barh', figsize=(12, 8),
-                                title='Frequency of Events by Domain Names of Service Providers')
+# Analysis of the registrars that registered the domains
+domain_reg_lst = parse_and_flatten(cc_data, 'domain_registrar')
+domain_reg_sum = summarize(domain_reg_lst, 5)
+domain_reg_sum.sort_values().plot(kind='barh', figsize=(12, 8),
+                                title='Frequency of Events by Domain Names of the Registrars')
