@@ -1,5 +1,5 @@
 ######################################################
-# Purpose: Analysis of the C2 Master list from from Bambenek Consulting
+# Purpose: Analysis of the C2 Master list from Bambenek Consulting
 #
 # Author: Valentin Todorov
 # Date: 10/18/2018
@@ -27,7 +27,7 @@ def read_data(osint_url, file_name):
 
     Returns
     -------------
-        A list with the data from the OSINT
+        A list with the data from the OSINT feed
     """
 
     # Read in the file from https://osint.bambenekconsulting.com/feeds/
@@ -51,7 +51,7 @@ def create_data_frame(logs_feed):
 
     Returns
     -------------
-        A dataframe
+        A dataframe with the feeds from Bambenek
     """
 
     df = pd.DataFrame({'col': logs_feed})
@@ -92,7 +92,7 @@ def bar_plot(df, field_name, graph_title, threshold_value):
     Parameters
     -------------
         df - Dataframe created from the OSINT feed
-        field_name - The column for which I want the frequency
+        field_name - The column for which the frequency will be plotted
         threshold_value - Specify the minimum number of instances to have for printing (useful for sparse data)
 
     Returns
@@ -106,7 +106,7 @@ def bar_plot(df, field_name, graph_title, threshold_value):
 
 
 def parse_and_flatten(df, field_name):
-    """ Creates bar plots for analysis
+    """ Parses and flattens a list of lists, i.e. each element is a value, not sublists
 
     Parameters
     -------------
