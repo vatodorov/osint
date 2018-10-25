@@ -10,6 +10,7 @@
 import pandas as pd
 import urllib.request
 from collections import Counter
+import re
 
 # Specify parameters
 osint_url = 'https://osint.bambenekconsulting.com/feeds/'
@@ -22,8 +23,8 @@ def read_data(osint_url, file_name):
 
     Parameters
     -------------
-        osint_url - URL of the OSINT feed
-        file_name - File name of the feed
+        osint_url: URL of the OSINT feed
+        file_name: File name of the feed
 
     Returns
     -------------
@@ -35,24 +36,44 @@ def read_data(osint_url, file_name):
 
     logs_feed = urllib.request.urlopen(url=osint_feed_url).read().decode('utf-8')
     logs_feed = logs_feed.split('\n')
-
-    # Remove the first 14 rows which are a header, and the last element, which is empty
-    logs_feed.remove('')
-    logs_feed = logs_feed[15:]
     return logs_feed
 
 
-def create_data_frame(logs_feed):
+def get_date(logs_feed, date_loc=3):
+    """ Extract the date of the last update of the feed
+
+    Parameters
+    -------------
+        logs_feed: Transformed logs from the function read_data(osint_url, file_name)
+        date_loc: The location of the date string in the feed imported from Bambenek
+
+    Returns
+    -------------
+        Date in the format YYYY-MM-DD
+    """
+
+    line = logs_feed[date_loc]
+    date = re.findall('\d+-\d+-\d+', line)
+    return date
+
+
+def create_data_frame(logs_feed, drop_elements=15):
     """ Creates a dataframe for analysis
 
     Parameters
     -------------
-        logs_feed - Transformed logs from the function read_data(osint_url, file_name)
+        logs_feed: Transformed logs from the function read_data(osint_url, file_name)
+        drop_elements: Drop the first n elements from the feed, which are the header. The default value is 15
 
     Returns
     -------------
         A dataframe with the feeds from Bambenek
     """
+
+    # Drop the first n elements from the feed, which are the header
+    # Also remove the last element, which is empty
+    logs_feed = logs_feed[drop_elements:]
+    logs_feed.remove('')
 
     df = pd.DataFrame({'col': logs_feed})
     df = pd.DataFrame(df.col.str.split(',', -1).tolist(),
@@ -65,7 +86,7 @@ def clean_data(df):
 
     Parameters
     -------------
-        df - Dataframe created from the OSINT feed
+        df: Dataframe created from the OSINT feed
 
     Returns
     -------------
@@ -91,9 +112,9 @@ def bar_plot(df, field_name, graph_title, threshold_value):
 
     Parameters
     -------------
-        df - Dataframe created from the OSINT feed
-        field_name - The column for which the frequency will be plotted
-        threshold_value - Specify the minimum number of instances to have for printing (useful for sparse data)
+        df: Dataframe created from the OSINT feed
+        field_name: The column for which the frequency will be plotted
+        threshold_value: Specify the minimum number of instances to have for printing (useful for sparse data)
 
     Returns
     -------------
@@ -106,12 +127,12 @@ def bar_plot(df, field_name, graph_title, threshold_value):
 
 
 def parse_and_flatten(df, field_name):
-    """ Parses and flattens a list of lists, i.e. each element is a value, not sublists
+    """ Parses and flattens a list of lists. As a result, each element in the final list is a value, not sublists
 
     Parameters
     -------------
-        df - Dataframe created from the OSINT feed
-        field_name - The column I want to parse
+        df: Dataframe created from the OSINT feed
+        field_name: The column I want to parse
 
     Returns
     -------------
@@ -134,8 +155,8 @@ def summarize(lst, threshold):
 
     Parameters
     -------------
-        lst - The parsed list from the function parse_and_flatten()
-        threshold - Threshold of the instances each list element need to have to be added to the output
+        lst: The parsed list from the function parse_and_flatten()
+        threshold: Threshold of the instances each list element need to have to be added to the output
 
     Returns
     -------------
@@ -150,25 +171,29 @@ def summarize(lst, threshold):
 
 # Create the data for analysis - print some overall stats
 cc_list = read_data(osint_url, file_name)
-cc_df = create_data_frame(cc_list)
+cc_df = create_data_frame(cc_list, drop_elements=15)
 cc_data = clean_data(cc_df)
 cc_data.info()
+
+# Get the data of the feed
+feed_date = get_date(cc_list, date_loc=3)
 
 # Frequency of domain IPs - graph the top 10
 domain_ip_lst = parse_and_flatten(cc_data, 'domain_ip')
 domain_ip_sum = summarize(domain_ip_lst, 2)
-domain_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of domains')
+domain_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of domains (as of %s)' % feed_date[0])
 
 # Frequency of malware names
-bar_plot(cc_data, 'malware', graph_title='Malware frequency', threshold_value=0)
+bar_plot(cc_data, 'malware', graph_title='Malware frequency (as of %s)' % feed_date[0], threshold_value=0)
 
 # Frequency of IPs of the domain registrars
 domain_reg_ip_lst = parse_and_flatten(cc_data, 'domain_registrar_ip')
 domain_reg_ip_sum = summarize(domain_reg_ip_lst, 10)
-domain_reg_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of Domain Registrars')
+domain_reg_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of Domain Registrars (as of %s)' % feed_date[0])
 
 # Analysis of the registrars that registered the domains
 domain_reg_lst = parse_and_flatten(cc_data, 'domain_registrar')
 domain_reg_sum = summarize(domain_reg_lst, 5)
 domain_reg_sum.sort_values().plot(kind='barh', figsize=(12, 8),
-                                title='Frequency of Events by Domain Names of the Registrars')
+                                title='Frequency of Events by Domain Names of the Registrars (as of %s)' % feed_date[0])
+
