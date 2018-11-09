@@ -1,0 +1,16 @@
+{
+	"bootstrapped": true,
+	"in_process_packages":
+	[
+	],
+	"installed_packages":
+	[
+		"Package Control",
+		"PersistentPython",
+		"Pretty JSON"
+	],
+	"repositories":
+	[
+		"https://github.com/dzhibas/SublimePrettyJson.git"
+	]
+}
