@@ -57,6 +57,24 @@ def get_date(logs_feed, date_loc=3):
     return date
 
 
+def get_timestamp(logs_feed, timestamp_loc=3):
+    """ Extracts the time of the last update of the feed
+
+    Parameters
+    -------------
+        logs_feed: Transformed logs from the function read_data(osint_url, file_name)
+        date_loc: The location of the date string in the feed imported from Bambenek
+
+    Returns
+    -------------
+        Time in the format HH:MM (24 hour format)
+    """
+
+    line = logs_feed[timestamp_loc]
+    timestamp = re.findall('\d+:\d+', line)
+    return timestamp
+
+
 def create_data_frame(logs_feed, drop_elements=15):
     """ Creates a dataframe for analysis
 
@@ -177,11 +195,13 @@ cc_data.info()
 
 # Get the data of the feed
 feed_date = get_date(cc_list, date_loc=3)
+feed_time = get_timestamp(cc_list, timestamp_loc=3)
 
 # Frequency of domain IPs - graph the top 10
 domain_ip_lst = parse_and_flatten(cc_data, 'domain_ip')
 domain_ip_sum = summarize(domain_ip_lst, 2)
-domain_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of domains (as of %s)' % feed_date[0])
+domain_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8),
+                                 title='IP addresses of domains (as of %s)' % feed_date[0])
 
 # Frequency of malware names
 bar_plot(cc_data, 'malware', graph_title='Malware frequency (as of %s)' % feed_date[0], threshold_value=0)
@@ -189,11 +209,12 @@ bar_plot(cc_data, 'malware', graph_title='Malware frequency (as of %s)' % feed_d
 # Frequency of IPs of the domain registrars
 domain_reg_ip_lst = parse_and_flatten(cc_data, 'domain_registrar_ip')
 domain_reg_ip_sum = summarize(domain_reg_ip_lst, 10)
-domain_reg_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of Domain Registrars (as of %s)' % feed_date[0])
+domain_reg_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8),
+                                     title='IP addresses of Domain Registrars (as of %s)' % feed_date[0])
 
 # Analysis of the registrars that registered the domains
 domain_reg_lst = parse_and_flatten(cc_data, 'domain_registrar')
 domain_reg_sum = summarize(domain_reg_lst, 5)
 domain_reg_sum.sort_values().plot(kind='barh', figsize=(12, 8),
-                                title='Frequency of Events by Domain Names of the Registrars (as of %s)' % feed_date[0])
-
+                                  title='Frequency of Events by Domain Names of the Registrars (as of %s)' % feed_date[
+                                      0])
