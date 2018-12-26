@@ -2,15 +2,19 @@
 # Purpose: Analysis of the C2 Master list from Bambenek Consulting
 #
 # Author: Valentin Todorov
-# Date: 10/18/2018
+# Date: 12/26/2018
 #
 ######################################################
 
 # Import libraries
+import matplotlib
+import matplotlib.pyplot as plt
 import pandas as pd
 import urllib.request
 from collections import Counter
 import re
+matplotlib.use('Agg')
+
 
 # Specify parameters
 osint_url = 'https://osint.bambenekconsulting.com/feeds/'
@@ -200,17 +204,23 @@ feed_time = get_timestamp(cc_list, timestamp_loc=3)
 # Frequency of domain IPs - graph the top 10
 domain_ip_lst = parse_and_flatten(cc_data, 'domain_ip')
 domain_ip_sum = summarize(domain_ip_lst, 2)
-domain_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8),
-                                 title='IP addresses of domains (as of %s)' % feed_date[0])
+domain_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of domains (as of %s)' % feed_date[0])
+plt.savefig('domain_ip_sum.png')
+plt.close()
 
 # Frequency of malware names
 bar_plot(cc_data, 'malware', graph_title='Malware frequency (as of %s)' % feed_date[0], threshold_value=0)
+plt.savefig('bar_plot.png')
+plt.close()
 
 # Frequency of IPs of the domain registrars
 domain_reg_ip_lst = parse_and_flatten(cc_data, 'domain_registrar_ip')
 domain_reg_ip_sum = summarize(domain_reg_ip_lst, 10)
 domain_reg_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8),
                                      title='IP addresses of Domain Registrars (as of %s)' % feed_date[0])
+plt.savefig('domain_reg_ip_sum.png')
+plt.close()
+
 
 # Analysis of the registrars that registered the domains
 domain_reg_lst = parse_and_flatten(cc_data, 'domain_registrar')
@@ -218,3 +228,5 @@ domain_reg_sum = summarize(domain_reg_lst, 5)
 domain_reg_sum.sort_values().plot(kind='barh', figsize=(12, 8),
                                   title='Frequency of Events by Domain Names of the Registrars (as of %s)' % feed_date[
                                       0])
+plt.savefig('domain_reg_sum.png')
+plt.close()
