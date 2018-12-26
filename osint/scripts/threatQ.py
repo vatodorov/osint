@@ -129,7 +129,7 @@ def clean_data(df):
     return final_osint_df
 
 
-def bar_plot(df, field_name, graph_title, threshold_value):
+def bar_plot(df, field_name, graph_title, threshold_value, x_axis_label, y_axis_label):
     """ Creates bar plots for analysis
 
     Parameters
@@ -144,7 +144,7 @@ def bar_plot(df, field_name, graph_title, threshold_value):
     """
 
     x = df[field_name].value_counts().sort_values()
-    x[x > threshold_value].plot(kind='barh', figsize=(12, 8), title=graph_title)
+    x[x > threshold_value].plot(kind='barh', figsize=(12, 8), title=graph_title, x=x_axis_label, y=y_axis_label)
     return
 
 
@@ -204,21 +204,23 @@ feed_time = get_timestamp(cc_list, timestamp_loc=3)
 # Frequency of domain IPs - graph the top 10
 domain_ip_lst = parse_and_flatten(cc_data, 'domain_ip')
 domain_ip_sum = summarize(domain_ip_lst, 2)
-domain_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of domains (as of %s)' % feed_date[0])
-plt.savefig('domain_ip_sum.png')
+domain_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8), title='IP addresses of domains with C2 malware (as of %s)' % feed_date[0])
+plt.savefig('top10_c2_malware_source_IPs.png')
 plt.close()
 
 # Frequency of malware names
-bar_plot(cc_data, 'malware', graph_title='Malware frequency (as of %s)' % feed_date[0], threshold_value=0)
-plt.savefig('bar_plot.png')
+bar_plot(cc_data, 'malware', graph_title='Count of infected domains by malware family (as of %s)' % feed_date[0], threshold_value=0,
+         x_axis_label='Count of infected domains by malware family',
+         y_axis_label=None)
+plt.savefig('malware_frequency.png')
 plt.close()
 
 # Frequency of IPs of the domain registrars
 domain_reg_ip_lst = parse_and_flatten(cc_data, 'domain_registrar_ip')
 domain_reg_ip_sum = summarize(domain_reg_ip_lst, 10)
 domain_reg_ip_sum.sort_values().plot(kind='barh', figsize=(12, 8),
-                                     title='IP addresses of Domain Registrars (as of %s)' % feed_date[0])
-plt.savefig('domain_reg_ip_sum.png')
+                                     title='IP addresses of domain registrars that host websites with C2 malware (as of %s)' % feed_date[0])
+plt.savefig('top10_domain_registrar_IPs.png')
 plt.close()
 
 
@@ -226,7 +228,6 @@ plt.close()
 domain_reg_lst = parse_and_flatten(cc_data, 'domain_registrar')
 domain_reg_sum = summarize(domain_reg_lst, 5)
 domain_reg_sum.sort_values().plot(kind='barh', figsize=(12, 8),
-                                  title='Frequency of Events by Domain Names of the Registrars (as of %s)' % feed_date[
-                                      0])
-plt.savefig('domain_reg_sum.png')
+                                  title='Count of malware infected domains by Domain Registrars (as of %s)' % feed_date[0])
+plt.savefig('domain_registrars.png')
 plt.close()
